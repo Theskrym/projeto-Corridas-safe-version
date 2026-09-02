@@ -1,0 +1,101 @@
+/* ===== ESTILOS DO DASHBOARD ===== */
+.dashboard-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6% 10%;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.overlap {
+  position: relative;
+  background-color: #0072c6;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.text-wrapper {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: -16px;
+  
+}
+
+
+.card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.overlap-group, .overlap-2 {
+  position: relative;
+}
+
+.text-wrapper-2 {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 3rem;
+  color: #045CA4;
+  margin-bottom: 0.5rem;
+}
+
+.text-wrapper-3 {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.linha {
+  height: 2px;
+  background: linear-gradient(to right, #045CA4, #0072C6);
+  margin-top: 1rem;
+}
+
+.report-section {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.status {
+  display: inline-block;
+  background-color: #0072C6;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.status:hover {
+  background-color: #045CA4;
+}
+
+.text-wrapper-4 {
+  margin: 0;
+}

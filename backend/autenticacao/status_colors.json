@@ -1,0 +1,34 @@
+{
+  "colors": [
+    {
+      "status": "pendente",
+      "label": "Pendente",
+      "color": "#F8C400"
+    },
+    {
+      "status": "confirmada",
+      "label": "Confirmada",
+      "color": "#34C759"
+    },
+    {
+      "status": "em_andamento",
+      "label": "Em Andamento",
+      "color": "#1D4ED8"
+    },
+    {
+      "status": "concluida",
+      "label": "Concluída",
+      "color": "#007AFF"
+    },
+    {
+      "status": "cancelada",
+      "label": "Cancelada",
+      "color": "#FF3B30"
+    },
+    {
+      "status": "recusada",
+      "label": "Recusada",
+      "color": "#FF3B30"
+    }
+  ]
+}

@@ -1,0 +1,885 @@
+/* CSS Consolidado para Motoristas e Veículos */
+
+/* Container principal */
+.motoristas-container,
+.veiculos-container,
+.corridas-container {
+  width: min(100%, 1200px);
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 20px;
+  padding-bottom: calc(var(--bottom-height) + 16px);
+  box-sizing: border-box;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.list-page-shell {
+  min-width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(var(--bottom-height) + 16px);
+}
+
+.list-page-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Cabeçalho */
+.motoristas-header,
+.veiculos-header,
+.corridas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+/* Seção de Status */
+.status-section {
+  flex: 1;
+  max-width: 400px;
+  position: relative;
+}
+
+.status-label {
+  display: block;
+  position: absolute;
+  top: -20px;
+  left: 4px;
+  color: #045ca4;
+  font-family: "DM Sans-SemiBold", Helvetica;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: rgba(0, 238, 255, 0.363);
+  padding: 0 4px;
+  z-index: 1;
+}
+
+/* Dropdown de Status */
+.status-dropdown {
+  width: 100%;
+  position: relative;
+  z-index: 1000;
+}
+
+.status-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1px 16px;
+  background-color: #ffffff;
+  border: 2px solid #0072c6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 44px;
+}
+
+.status-dropdown-header:hover {
+  border-color: #045ca4;
+}
+
+.status-dropdown-title {
+  color: #045ca4;
+  font-family: "DM Sans-SemiBold", Helvetica;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-dropdown-icon {
+  width: 16px;
+  height: 16px;
+  color: #045ca4;
+  transition: transform 0.3s ease;
+}
+
+.status-dropdown.open .status-dropdown-icon {
+  transform: rotate(180deg);
+}
+
+.status-dropdown-options {
+  display: none;
+  position: absolute;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 0;
+  background-color: #ffffff;
+  border: 2px solid #0072c6;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+}
+
+.status-dropdown.open .status-dropdown-options {
+  display: block;
+}
+
+.status-option {
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #045ca4;
+  font-family: "DM Sans-Regular", Helvetica;
+  font-size: 14px;
+}
+
+.status-option:hover {
+  background-color: #045ca4;
+  color: #ffffff;
+}
+
+/* Seção de Busca */
+.search-section {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.search-label {
+  display: block;
+  position: absolute;
+  top: -20px;
+  left: 4px;
+  color: #045ca4;
+  font-family: "DM Sans-SemiBold", Helvetica;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: rgba(0, 238, 255, 0.363);
+  padding: 0 4px;
+  z-index: 1;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 45px 12px 16px;
+  background-color: #ffffff;
+  border: 2px solid #0072c6;
+  border-radius: 8px;
+  color: #045ca4;
+  font-family: "DM Sans-Regular", Helvetica;
+  font-size: 14px;
+  min-height: 44px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #045ca4;
+}
+
+.search-input::placeholder {
+  color: #0000004c;
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #045ca4;
+  pointer-events: none;
+}
+
+/* ============================================ */
+/* TABELA COM OVERFLOW HORIZONTAL - ADAPTÁVEL */
+/* ============================================ */
+
+/* Container com um único scroll para toda a tabela */
+.table-container {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 2px solid #0072c6;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: auto;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: min(70dvh, calc(100dvh - 220px));
+  flex: 0 1 auto;
+  align-self: stretch;
+  display: block;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #045ca4 #f1f1f1;
+}
+
+.table-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: none;
+  border-radius: 999px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #045ca4;
+  border-radius: 999px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #003d6b;
+}
+
+/* Header mantém o grid original */
+.table-header {
+  display: grid;
+  padding: 12px 16px;
+  background: linear-gradient(0deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 1) 100%);
+  border-bottom: 1px solid #045ca4;
+  font-family: "DM Sans-Bold", Helvetica;
+  font-size: 12px;
+  font-weight: 700;
+  color: #045ca4;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  flex-shrink: 0;
+  min-width: min-content;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  align-items: center;
+}
+
+/* Corpo da tabela */
+.table-body {
+  min-height: 0;
+  overflow: visible;
+  max-height: none;
+  width: 100%;
+  min-width: 100%;
+}
+
+.table-body .table-row {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Linhas mantêm o mesmo grid do header */
+.table-row {
+  display: grid;
+  padding: 10px 16px;
+  align-items: center;
+  transition: background-color 0.2s;
+  font-family: "DM Sans-Regular", Helvetica;
+  font-size: 12px;
+  color: #045ca4;
+  border-bottom: 1px solid #e0e0e0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Zebra striping */
+.table-row.even {
+  background-color: #ffffff;
+}
+
+.table-row.odd {
+  background-color: #d9d9d966;
+}
+
+.table-row:hover {
+  background-color: rgba(4, 92, 164, 0.1);
+}
+
+/* Células */
+.table-cell {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 6px;
+}
+
+/* Alinhamentos específicos */
+.col-nome {
+  text-align: left;
+}
+
+.col-placa {
+  text-align: left;
+}
+
+.col-corridas {
+  text-align: center;
+}
+
+.col-status {
+  text-align: left;
+}
+
+.col-recursos {
+  text-align: center;
+}
+
+.col-data {
+  text-align: center;
+}
+
+.col-acoes {
+  text-align: center;
+}
+
+/* ============================================ */
+/* LARGURA BASE EM PORCENTAGEM */
+/* ============================================ */
+
+.table-header,
+.table-row {
+  min-width: 0;
+}
+
+.table-header > span {
+  text-align: center !important;
+}
+
+.table-sort-button {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.table-row > .table-cell {
+  text-align: center !important;
+  padding-right: 0;
+}
+
+@media (max-width: 900px) {
+  .table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  .table-header {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  .table-row {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  .table-body {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-header {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .table-row {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .table-row.even,
+  .table-row.odd {
+    background-color: #ffffff;
+  }
+
+  .table-row.odd {
+    background-color: #d9d9d966;
+  }
+}
+
+@media (max-width: 900px) {
+  .table-container:has(.corridas-table-row) .table-header,
+  .table-container:has(.relatorio-table-row) .table-header,
+  .table-container:has(.motoristas-table-row) .table-header,
+  .table-container:has(.veiculos-table-row) .table-header,
+  .table-container:has(.corridas-table-row) .table-body,
+  .table-container:has(.relatorio-table-row) .table-body,
+  .table-container:has(.motoristas-table-row) .table-body,
+  .table-container:has(.veiculos-table-row) .table-body {
+    width: 180% !important;
+  }
+
+  .table-container:has(.corridas-table-row) .table-row,
+  .table-container:has(.relatorio-table-row) .table-row,
+  .table-container:has(.motoristas-table-row) .table-row,
+  .table-container:has(.veiculos-table-row) .table-row {
+    width: 100% !important;
+  }
+}
+
+/* ============================================ */
+/* LISTA VAZIA */
+/* ============================================ */
+
+.table-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #045ca4;
+  font-family: "DM Sans-Regular", Helvetica;
+  font-size: 14px;
+}
+
+/* ============================================ */
+/* TAG STATUS */
+/* ============================================ */
+
+.tag-status {
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-block;
+  text-align: center;
+  min-width: 90px;
+}
+
+/* Cores para status de corrida */
+.tag-status.concluida {
+  background: #34C759;
+  color: #FFFFFF;
+}
+
+.tag-status.cancelada {
+  background: #FF3B30;
+  color: #FFFFFF;
+}
+
+.tag-status.confirmada {
+  background: #2196f3;
+  color: #FFFFFF;
+}
+
+.tag-status.pendente {
+  background: #ffc107;
+  color: #000000;
+}
+
+.tag-status.em_andamento {
+  background: #1D4ED8;
+  color: #FFFFFF;
+}
+
+.tag-status.reconfirmacao_necessaria {
+  background: #ff9800;
+  color: #FFFFFF;
+}
+
+.tag-status.recusada {
+  background: #FF3B30;
+  color: #FFFFFF;
+}
+
+/* Cores para status de veículo */
+.tag-status.disponivel {
+  background: #34C759;
+  color: #FFFFFF;
+}
+
+.tag-status.manutencao {
+  background: #ff9800;
+  color: #FFFFFF;
+}
+
+.tag-status.indisponivel {
+  background: #FF3B30;
+  color: #FFFFFF;
+}
+
+/* Cores para status de motorista */
+.tag-status.ativo {
+  background: #34C759;
+  color: #FFFFFF;
+}
+
+.tag-status.inativo {
+  background: #FF3B30;
+  color: #FFFFFF;
+}
+
+/* Fallback */
+.tag-status.default {
+  background: #999999;
+  color: #FFFFFF;
+}
+
+/* ============================================ */
+/* BOTÕES */
+/* ============================================ */
+
+.edit-button {
+    background: none;
+    border: none; /* Mudei de 100px para none */
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    
+    /* Efeito elevado */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    background-color: #f0f0f0; /* Cor de fundo para o botão aparecer */
+}
+
+/* Efeito ao passar o mouse */
+.edit-button:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px); /* Sobe um pouco */
+    background-color: #e8e8e8;
+}
+
+/* Efeito ao clicar */
+.edit-button:active {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateY(0px); /* Volta ao normal */
+}
+
+.edit-button:hover {
+  background-color: rgba(4, 92, 164, 0.1);
+}
+
+.add-button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #0072c6;
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 24px;
+  font-weight: bold;
+  font-family: "DM Sans-Bold", Helvetica;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.add-button:hover {
+  background-color: #045ca4;
+  transform: scale(1.05);
+}
+
+/* ============================================ */
+/* MENSAGENS DE CARREGAMENTO */
+/* ============================================ */
+
+.loading-message,
+.error-message,
+.no-motoristas-message {
+  padding: 40px 20px;
+  text-align: center;
+  color: #045ca4;
+  font-family: "DM Sans-Regular", Helvetica;
+  font-size: 14px;
+}
+
+.error-message {
+  color: #e33629;
+  padding: 15px;
+  background-color: #f8d7da;
+  border-radius: 4px;
+  margin: 10px 0;
+  border: 1px solid #f5c6cb;
+}
+
+.error-message button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #e33629;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #045ca4;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ============================================ */
+/* BARRA DE ROLAGEM PERSONALIZADA */
+/* ============================================ */
+
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #045ca4;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #003d6b;
+}
+
+/* ============================================ */
+/* RESPONSIVIDADE PARA MOBILE */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  .motoristas-container,
+  .veiculos-container,
+  .corridas-container {
+    padding: 15px;
+    padding-bottom: calc(var(--bottom-height) + 20px);
+  }
+  
+  .motoristas-header,
+  .veiculos-header {
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .status-section {
+    flex: 1;
+    max-width: calc(100% - 70px);
+  }
+  
+  .add-button {
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+  }
+  
+  .status-label,
+  .search-label {
+    left: 2px;
+    top: -18px;
+    font-size: 11px;
+  }
+  
+  .table-container {
+    margin: 0 -5px;
+    border-radius: 8px;
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+  
+  .table-header {
+    padding: 12px 15px;
+    font-size: 11px;
+    width: 100%;
+    min-width: 0;
+    display: grid;
+  }
+  
+  .table-row {
+    padding: 10px 15px;
+    font-size: 11px;
+    width: 100%;
+    min-width: 0;
+    display: grid;
+  }
+  
+  .tag-status {
+    padding: 4px 10px;
+    font-size: 10px;
+    min-width: 75px;
+  }
+  
+  .edit-button {
+    font-size: 14px;
+  }
+  
+  .table-cell {
+    white-space: nowrap;
+  }
+}
+
+/* Telas muito pequenas */
+@media (max-width: 480px) {
+  .table-header {
+    padding: 10px 12px;
+    font-size: 10px;
+    width: 100%;
+    min-width: 0;
+    display: grid;
+  }
+  
+  .table-row {
+    padding: 8px 12px;
+    font-size: 10px;
+    width: 100%;
+    min-width: 0;
+    display: grid;
+  }
+  
+  .tag-status {
+    padding: 3px 8px;
+    font-size: 9px;
+    min-width: 65px;
+  }
+}
+
+/* Ajustes finais para telas estreitas */
+.status-label,
+.search-label {
+  background-color: transparent !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 480px) {
+  .status-label,
+  .search-label {
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .home-content-wrapper,
+  .conteudo,
+  .motoristas-container,
+  .veiculos-container,
+  .corridas-container,
+  .list-page-shell,
+  .list-page-content {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .motoristas-header,
+  .veiculos-header,
+  .corridas-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .status-section,
+  .motoristas-header .status-section,
+  .veiculos-header .status-section,
+  .corridas-header .status-section {
+    width: calc(100% - 50px) !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .add-button {
+    flex: 0 0 40px;
+    margin-left: auto !important;
+    align-self: center !important;
+  }
+
+  .search-section {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .relatorio-filtros-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-section {
+    order: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .motoristas-container .search-section,
+  .veiculos-container .search-section,
+  .corridas-container .search-section {
+    width: calc(100% - 70px) !important;
+    max-width: none !important;
+  }
+
+  .motoristas-container .search-input-wrapper,
+  .veiculos-container .search-input-wrapper,
+  .corridas-container .search-input-wrapper {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .motoristas-container .search-section,
+  .veiculos-container .search-section,
+  .corridas-container .search-section {
+    width: calc(100% - 50px) !important;
+  }
+}
+
+@media (min-width: 381px) and (max-width: 480px) {
+  .motoristas-container .search-section,
+  .veiculos-container .search-section,
+  .corridas-container .search-section {
+    width: calc(100% - 55px) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .table-container:has(.corridas-table-row) .table-header,
+  .table-container:has(.relatorio-table-row) .table-header {
+    width: 180% !important;
+  }
+
+  .table-container:has(.corridas-table-row) .table-body,
+  .table-container:has(.relatorio-table-row) .table-body {
+    width: 180% !important;
+  }
+
+  .table-container:has(.corridas-table-row) .table-row,
+  .table-container:has(.relatorio-table-row) .table-row {
+    width: 100% !important;
+  }
+}

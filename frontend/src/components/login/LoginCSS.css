@@ -1,0 +1,277 @@
+/* Reset e variáveis */
+:root {
+  --azul-cesmac: #045ca4;
+  --azul-claro: #0072c6;
+  --branco: #ffffff;
+  --preto: #000000;
+  --cinza-borda: #e0e0e0;
+}
+
+/* Estrutura principal */
+.login-main-container {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-width: 330px; /* 🔐 Evita bug em telas menores */
+
+  background-color: var(--branco);
+  padding: 20px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  overflow-x: hidden; /* Evita rolagem horizontal */
+}
+
+/* Logo CESMAC */
+.login-logo {
+  width: clamp(200px, 25vw, 280px); /* Tamanho responsivo com mínimo e máximo */
+  height: auto;
+  margin: 0 auto 2px; /* Reduzido de 20px para 10px */
+  display: block;
+}
+
+/* Barra do sistema */
+.system-header-bar {
+  width: 100%;
+  padding: 10px 15px;
+  background-color: var(--azul-claro);
+  text-align: center;
+  margin-bottom: 2px; /* Reduzido de 30px para 15px */
+  box-sizing: border-box;
+}
+
+.system-title {
+  color: var(--branco);
+  font-family: "DM Sans-Bold", Helvetica, sans-serif;
+  font-size: clamp(14px, 2.5vw, 20px); /* Ajusta tamanho da fonte */
+  font-weight: 700;
+  margin: 0;
+  white-space: normal; /* Permite quebra de linha */
+  word-wrap: break-word; /* Garante que o texto quebre */
+}
+
+/* Card de login */
+.login-form-card {
+  width: 90%;
+  max-width: 500px;
+  min-width: 280px; /* Evita que o card fique muito pequeno */
+  margin: 0 auto;
+  padding: clamp(15px, 4vw, 30px); /* Padding responsivo */
+  background-color: var(--branco);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra leve para destaque */
+  border-radius: 8px; /* Bordas arredondadas */
+  box-sizing: border-box;
+}
+
+/* Título "Login" */
+.login-form-title {
+  color: var(--azul-cesmac);
+  font-family: "DM Sans-Bold", Helvetica, sans-serif;
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 700;
+  text-align: left;
+  margin-bottom: 25px;
+  margin-top: 0;
+}
+
+/* Campos do formulário */
+.login-input-group {
+  margin-bottom: 20px;
+}
+
+.login-input-label {
+  display: block;
+  color: var(--azul-cesmac);
+  font-family: "DM Sans-Bold", Helvetica, sans-serif;
+  font-size: clamp(12px, 1.5vw, 14px);
+  margin-bottom: 8px;
+}
+
+.login-input-wrapper {
+  position: relative;
+}
+
+.login-input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+}
+
+.login-input-field {
+  width: 100%;
+  padding: 10px 10px 10px 36px;
+  background-color: var(--branco);
+  color: var(--preto);
+  border: 1px solid var(--cinza-borda);
+  border-radius: 4px;
+  font-family: "DM Sans-Regular", Helvetica, sans-serif;
+  font-size: clamp(12px, 1.5vw, 14px);
+  transition: border-color 0.3s, box-shadow 0.3s;
+  box-sizing: border-box;
+}
+
+.login-input-field:focus {
+  outline: none;
+  border-color: var(--azul-cesmac);
+  box-shadow: 0 0 5px rgba(4, 92, 164, 0.3); /* Sombra ao focar */
+}
+
+/* Botão ENTRAR */
+.login-submit-button {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--azul-claro);
+  color: var(--branco);
+  border: none;
+  border-radius: 4px;
+  font-family: "DM Sans-Bold", Helvetica, sans-serif;
+  font-size: clamp(14px, 2vw, 16px);
+  margin-top: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.login-submit-button:hover {
+  background-color: var(--azul-cesmac);
+  transform: translateY(-2px); /* Efeito de elevação */
+}
+
+/* Link "Esqueceu a senha" */
+.login-forgot-password {
+  text-align: right;
+  margin: 10px 0 20px;
+}
+
+.forgot-password-link {
+  color: var(--azul-cesmac);
+  font-family: "DM Sans-Bold", Helvetica, sans-serif;
+  font-size: clamp(12px, 1.5vw, 13px);
+  text-decoration: none;
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
+}
+
+/* Mensagens e rodapé */
+.login-error-message {
+  color: #dc3545;
+  font-size: clamp(12px, 1.5vw, 13px);
+  text-align: center;
+  margin-top: 10px;
+}
+
+.login-help-text {
+  color: var(--azul-cesmac);
+  font-family: "DM Sans-Regular", Helvetica, sans-serif;
+  font-size: clamp(12px, 1.5vw, 14px);
+  text-align: center;
+  margin-top: 20px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.login-footer-text {
+  color: var(--azul-cesmac);
+  font-family: "DM Sans-Regular", Helvetica, sans-serif;
+  font-size: clamp(12px, 1.5vw, 13px);
+  text-align: center;
+  margin-top: 30px;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .login-main-container {
+    padding: 15px;
+  }
+
+  .login-logo {
+    width: clamp(180px, 40vw, 220px);
+    margin-bottom: 8px; /* Ajuste para telas menores */
+  }
+
+  .system-header-bar {
+    padding: 8px 10px;
+    margin-bottom: 12px; /* Ajuste para telas menores */
+  }
+
+  .system-title {
+    font-size: clamp(14px, 3vw, 18px);
+  }
+
+  .login-form-card {
+    width: 95%;
+    padding: 20px;
+    min-width: 250px;
+  }
+
+  .login-form-title {
+    font-size: clamp(16px, 5vw, 20px);
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-main-container {
+    padding: 10px;
+  }
+
+  .login-logo {
+    width: clamp(160px, 50vw, 200px);
+    margin-bottom: 6px; /* Ajuste para telas muito pequenas */
+  }
+
+  .system-header-bar {
+    padding: 6px 8px;
+    margin-bottom: 10px; /* Ajuste para telas muito pequenas */
+  }
+
+  .system-title {
+    font-size: clamp(12px, 4vw, 16px);
+  }
+
+  .login-form-card {
+    width: 100%;
+    padding: 15px;
+    min-width: 0;
+  }
+
+  .login-input-field {
+    padding: 8px 8px 8px 32px;
+  }
+
+  .login-input-icon {
+    width: 16px;
+    height: 16px;
+    left: 10px;
+  }
+
+  .login-submit-button {
+    padding: 10px;
+  }
+
+  .login-help-text,
+  .login-footer-text {
+    font-size: clamp(10px, 3vw, 12px);
+  }
+}
+
+@media (min-width: 1200px) {
+  .login-form-card {
+    max-width: 500px;
+  }
+
+  .login-main-container {
+    padding: 30px;
+  }
+
+  .system-header-bar {
+    padding: 12px 20px;
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "E.L.I.A.S",
+    "slug": "elias-motorista",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTabletMode": true,
+      "bundleIdentifier": "com.cesmac.elias"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/logo-CESMAC-redux.svg",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.cesmac.elias"
+    },
+    "web": {
+      "bundler": "webpack",
+      "build": {
+        "babel": {
+          "include": ["@react-navigation"]
+        }
+      }
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./src/assets/logo-CESMAC-redux.svg",
+          "resizeMode": "contain",
+          "backgroundColor": "#0069AD"
+        }
+      ]
+    ]
+  }
+}

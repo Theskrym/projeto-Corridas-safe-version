@@ -1,0 +1,251 @@
+# ================================
+# PYTHON / DJANGO
+# ================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Django specific
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+static/
+*.sqlite3
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+pythonenv*
+
+# Django migrations (opcional - descomente se quiser ignorar)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# ================================
+# NODE / VITE / FRONTEND
+# ================================
+
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Vite specific
+dist/
+dist-ssr/
+*.local
+
+# Build outputs
+build/
+out/
+.next/
+.nuxt/
+.cache/
+
+# Environment variables
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ================================
+# IDE / EDITORES
+# ================================
+
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# IntelliJ / WebStorm / PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.~*
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+
+# ================================
+# SISTEMAS OPERACIONAIS
+# ================================
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+*.icloud
+
+# Linux
+*.tmp
+*.temp
+
+# ================================
+# ARQUIVOS DE LOG E TEMPORÁRIOS
+# ================================
+
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+*.temp
+*.pid
+*.seed
+*.pid.lock
+
+# ================================
+# TESTES E COBERTURA
+# ================================
+
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.coverage.*
+*.cover
+*.py,cover
+.hypothesis/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.pytest_cache/
+
+# ================================
+# BANCO DE DADOS
+# ================================
+
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+*.accdb
+*.bak
+*.backup
+
+# ================================
+# ARQUIVOS DE DEPLOY
+# ================================
+
+*.pid
+*.seed
+*.pid.lock
+.DS_Store
+*.swp
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# ================================
+# OUTROS
+# ================================
+
+# Docker
+docker-compose.override.yml
+*.dockerignore
+Dockerfile.dev
+
+# Certificados SSL
+*.pem
+*.crt
+*.key
+*.p12
+
+# Arquivos de backup
+*.bak
+*.backup
+*.old
+*.orig
+
+# Arquivos de dados
+data/
+*.csv
+*.xlsx
+*.xls
+
+# Segredos e dados locais do projeto
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite3
+*.db
+*.log
+*.pem
+*.key
+*.p12
+backend/debug*.log
+runserver.log
+
+# Artefatos locais do Expo
+frontend/.expo/
+
+# ================================
+# ESPECÍFICOS DO PROJETO
+# ================================
+
+# Frontend build
+frontend/dist/
+frontend/node_modules/
+frontend/.vite/
+
+# Backend Python
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+backend/*.pyc
+backend/db.sqlite3
+
+# Media files
+media/
+staticfiles/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Redis dump
+dump.rdb
