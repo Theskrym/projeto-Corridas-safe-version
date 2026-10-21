@@ -262,7 +262,7 @@ class ChangePasswordView(APIView):
         return self.put(request)
 
 
-@api_view(['GET', 'PUT'])
+@api_view(['GET', 'PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def user_personal_data(request):
     user = request.user
@@ -271,9 +271,9 @@ def user_personal_data(request):
         serializer = UserDetailSerializer(user)
         return Response(serializer.data)
     
-    elif request.method == 'PUT':
+    elif request.method in ['PUT', 'PATCH']:
         # Permitir apenas campos editáveis
-        allowed_fields = ['nome', 'telefone']
+        allowed_fields = ['nome', 'telefone', 'fcm_token']
         data = {k: v for k, v in request.data.items() if k in allowed_fields}
         
         serializer = UserDetailSerializer(user, data=data, partial=True)

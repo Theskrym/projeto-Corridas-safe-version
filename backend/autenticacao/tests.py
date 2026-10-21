@@ -14,6 +14,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta, datetime, time, date
+from unittest.mock import patch
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 
@@ -27,6 +28,35 @@ from .corrida_helpers import (
     validar_disponibilidade_veiculo,
     adiar_corrida,
 )
+
+
+class TestNotificacaoPushNativo(APITestCase):
+    def test_criar_notificacao_envia_push_para_usuario_com_fcm_token(self):
+        usuario = Usuario.objects.create_user(
+            login='motorista-push',
+            email='motorista.push@cesmac.edu.br',
+            password='123456',
+            nome='Motorista Push',
+            nivel_acesso=3,
+            fcm_token='ExponentPushToken[abc123]'
+        )
+
+        with patch('autenticacao.signals.requests.post') as mock_post:
+            mock_post.return_value.raise_for_status.return_value = None
+            mock_post.return_value.status_code = 200
+
+            Notificacao.objects.create(
+                usuario=usuario,
+                titulo='Nova corrida',
+                mensagem='Uma corrida foi atribuída a você.',
+                tipo=Notificacao.TipoChoices.RIDE_CREATED,
+            )
+
+        mock_post.assert_called_once()
+        payload = mock_post.call_args.kwargs['json']
+        self.assertEqual(payload['to'], 'ExponentPushToken[abc123]')
+        self.assertEqual(payload['title'], 'Nova corrida')
+        self.assertEqual(payload['body'], 'Uma corrida foi atribuída a você.')
 
 
 class TestCriarMotoristaNivelAcesso(APITestCase):

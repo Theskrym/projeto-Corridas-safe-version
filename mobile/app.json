@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "E.L.I.A.S Admin",
+    "slug": "elias-admin-mobile",
+    "version": "1.0.0",
+    "scheme": "eliasadmin",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.cesmac.elias.admin"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"78
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O E.L.I.A.S usa a câmera para registrar imagens associadas a uma corrida.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O E.L.I.A.S usa sua localização para preencher o ponto de embarque das corridas."
+        }
+      ],
+      "expo-font",
+      "expo-status-bar",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    }
+  }
+}

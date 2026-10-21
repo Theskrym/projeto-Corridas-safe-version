@@ -1,7 +1,45 @@
+import logging
+
+import requests
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.contrib.auth.models import Group
 from .models import Usuario, Corridas, Notificacao
+
+logger = logging.getLogger(__name__)
+
+
+def enviar_push_nativo_para_usuario(notificacao):
+    """Envia notificação nativa via Expo Push quando o usuário tem token do celular."""
+    if not notificacao.usuario or not getattr(notificacao.usuario, 'fcm_token', None):
+        return
+
+    token = str(notificacao.usuario.fcm_token).strip()
+    if not token:
+        return
+
+    payload = {
+        'to': token,
+        'title': notificacao.titulo,
+        'body': notificacao.mensagem,
+        'sound': 'default',
+        'priority': 'high',
+        'data': {
+            'id_notificacao': str(notificacao.id_notificacao),
+            'tipo': notificacao.tipo,
+        },
+    }
+
+    try:
+        response = requests.post(
+            'https://exp.host/--/api/v2/push/send',
+            json=payload,
+            timeout=10,
+        )
+        response.raise_for_status()
+        logger.info('Push nativo enviado para %s: %s', notificacao.usuario.login, notificacao.titulo)
+    except Exception as exc:
+        logger.warning('Falha ao enviar push nativo para %s: %s', notificacao.usuario.login, exc)
 
 @receiver(post_save, sender=Usuario)
 def assign_grupo_to_usuario(sender, instance, created, **kwargs):
@@ -38,6 +76,13 @@ def track_corrida_status_before_save(sender, instance, **kwargs):
         _corrida_status_cache[instance.pk] = old_instance.status
     except Corridas.DoesNotExist:
         _corrida_status_cache[instance.pk] = None
+
+
+@receiver(post_save, sender=Notificacao)
+def handle_notificacao_push(sender, instance, created, **kwargs):
+    """Dispara push nativo sempre que uma notificação for criada."""
+    if created:
+        enviar_push_nativo_para_usuario(instance)
 
 
 @receiver(post_save, sender=Corridas)

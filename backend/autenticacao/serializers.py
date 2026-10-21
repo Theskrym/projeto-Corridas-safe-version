@@ -27,7 +27,7 @@ class LoginSerializer(serializers.Serializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = ['id_usuario', 'nome', 'telefone', 'matricula', 'email', 'login', 'nivel_acesso']
+        fields = ['id_usuario', 'nome', 'telefone', 'matricula', 'email', 'login', 'nivel_acesso', 'fcm_token']
         read_only_fields = ['id_usuario', 'email', 'login', 'matricula', 'nivel_acesso']  # Campos não editáveis
         
          

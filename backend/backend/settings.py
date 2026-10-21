@@ -26,7 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://djangoproject.com
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+# Local fallback for development without a .env file or SQL Server config.
+SECRET_KEY = os.getenv('SECRET_KEY', 'dev-local-secret-key-cesmac-2026')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
