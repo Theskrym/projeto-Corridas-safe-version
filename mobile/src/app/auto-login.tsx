@@ -26,9 +26,11 @@ export default function AutoLoginScreen() {
           force_password_change: Boolean(data.force_password_change || forceChangeParam === 'true'),
         };
         const session: Session = { token: data.token, user };
-        await acceptSession(session);
+        const needsPrivacyConsent = await acceptSession(session);
         if (!active) return;
-        if (user.force_password_change) router.replace('/senha');
+        if (needsPrivacyConsent) router.replace('/privacy-consent');
+        else if (user.force_password_change) router.replace('/(admin)/senha');
+        else if (Number(user.nivel_acesso) === 3) router.replace('/agendamento');
         else router.replace('/(admin)/(tabs)');
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : 'Link inválido ou expirado.');
@@ -38,5 +40,5 @@ export default function AutoLoginScreen() {
     return () => { active = false; };
   }, [token, forceChangeParam, acceptSession]);
 
-  return <><TopBar title="Acesso seguro" /><Page><LoadingState label="Validando link de acesso..." />{error ? <Notice message={error} /> : <Text style={{ color: colors.muted, textAlign: 'center' }}>A autenticação é feita com o servidor institucional.</Text>}</Page></>;
+  return <><TopBar title="Acesso seguro" showSettings={false} /><Page><LoadingState label="Validando link de acesso..." />{error ? <Notice message={error} /> : <Text style={{ color: colors.muted, textAlign: 'center' }}>A autenticação é feita com o servidor institucional.</Text>}</Page></>;
 }

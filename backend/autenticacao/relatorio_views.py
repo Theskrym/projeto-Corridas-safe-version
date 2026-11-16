@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from datetime import datetime, timedelta
+from datetime import datetime
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.http import FileResponse
@@ -18,6 +18,71 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 import io
 import json
 import os
+
+
+def _filter_report_rides(request):
+    data_inicio_str = request.query_params.get('data_inicio', '').strip()
+    data_fim_str = request.query_params.get('data_fim', '').strip()
+
+    try:
+        data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d').date() if data_inicio_str else None
+        data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date() if data_fim_str else None
+        if data_inicio and data_inicio.isoformat() != data_inicio_str:
+            raise ValueError
+        if data_fim and data_fim.isoformat() != data_fim_str:
+            raise ValueError
+    except ValueError:
+        return None, None, None, Response(
+            {'error': 'Informe as datas no formato AAAA-MM-DD.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if data_inicio and data_fim and data_inicio > data_fim:
+        return None, None, None, Response(
+            {'error': 'A data inicial não pode ser posterior à data final.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    corridas = Corridas.objects.all()
+    if data_inicio:
+        corridas = corridas.filter(data_solicitacao__date__gte=data_inicio)
+    if data_fim:
+        corridas = corridas.filter(data_solicitacao__date__lte=data_fim)
+
+    status_filter = request.query_params.get('status', '').strip().lower()
+    valid_statuses = {choice for choice, _ in Corridas.StatusChoices.choices}
+    if status_filter:
+        if status_filter not in valid_statuses:
+            return None, None, None, Response(
+                {'error': 'Status de corrida inválido.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        corridas = corridas.filter(status=status_filter)
+
+    motorista_id = request.query_params.get('motorista_id', '').strip()
+    if motorista_id:
+        try:
+            corridas = corridas.filter(motorista_id=int(motorista_id))
+        except ValueError:
+            return None, None, None, Response(
+                {'error': 'O identificador do motorista deve ser numérico.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    query = request.query_params.get('q', '').strip()
+    if query:
+        corridas = corridas.filter(
+            Q(ponto_inicio__icontains=query)
+            | Q(ponto_chegada__icontains=query)
+            | Q(solicitante__icontains=query)
+            | Q(destinos__icontains=query)
+            | Q(servico__icontains=query)
+            | Q(motorista__nome__icontains=query)
+            | Q(veiculo__nome__icontains=query)
+            | Q(veiculo__placa__icontains=query)
+        )
+
+    return corridas, data_inicio, data_fim, None
 
 
 @api_view(['GET'])
@@ -61,52 +126,9 @@ def relatorios(request):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Parse query params
-        data_inicio_str = request.query_params.get('data_inicio')
-        data_fim_str = request.query_params.get('data_fim')
-        motorista_id = request.query_params.get('motorista_id')
-        status_filter = request.query_params.get('status')
-        
-        # Se nenhuma data foi fornecida, retorna TODAS as corridas
-        if not data_inicio_str and not data_fim_str:
-            corridas = Corridas.objects.all()
-            data_inicio = None
-            data_fim = None
-        else:
-            # Se datas foram fornecidas, usar lógica de filtro
-            today = timezone.now().date()
-            if data_fim_str:
-                try:
-                    data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
-                except:
-                    data_fim = today
-            else:
-                data_fim = today
-            
-            if data_inicio_str:
-                try:
-                    data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d').date()
-                except:
-                    data_inicio = today - timedelta(days=7)
-            else:
-                data_inicio = today - timedelta(days=7)
-            
-            # Filtrar corridas por data
-            corridas = Corridas.objects.filter(
-                data_solicitacao__date__gte=data_inicio,
-                data_solicitacao__date__lte=data_fim
-            )
-        
-        # Filtrar por motorista se especificado
-        if motorista_id:
-            try:
-                corridas = corridas.filter(motorista_id=int(motorista_id))
-            except:
-                pass
-        
-        # Filtrar por status se especificado
-        if status_filter:
-            corridas = corridas.filter(status=status_filter)
+        corridas, data_inicio, data_fim, filter_error = _filter_report_rides(request)
+        if filter_error:
+            return filter_error
         
         # Calcular estatísticas gerais
         total_corridas = corridas.count()
@@ -283,60 +305,20 @@ def relatorios_download(request):
     Returns: arquivo XLSX com todas as corridas
     """
     try:
-        # Apenas admin pode gerar relatórios
+        # Os mesmos perfis que podem consultar o relatório podem exportá-lo.
         user = request.user
-        if user.nivel_acesso != 1:
+        if getattr(user, 'nivel_acesso', None) not in [1, 2, 4]:
             return Response(
-                {'detail': 'Apenas administradores podem baixar relatórios'},
+                {'detail': 'Você não tem permissão para exportar relatórios'},
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Parse query params
-        data_inicio_str = request.query_params.get('data_inicio')
-        data_fim_str = request.query_params.get('data_fim')
-        motorista_id = request.query_params.get('motorista_id')
-        status_filter = request.query_params.get('status')
-        
-        # Se nenhuma data foi fornecida, retorna TODAS as corridas
+        corridas, data_inicio, data_fim, filter_error = _filter_report_rides(request)
+        if filter_error:
+            return filter_error
+
         today = timezone.now().date()
-        if not data_inicio_str and not data_fim_str:
-            corridas = Corridas.objects.all().select_related('veiculo', 'motorista', 'criado_por').order_by('-data_solicitacao')
-            data_inicio = None
-            data_fim = None
-        else:
-            # Se datas foram fornecidas, usar lógica de filtro
-            if data_fim_str:
-                try:
-                    data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
-                except:
-                    data_fim = today
-            else:
-                data_fim = today
-            
-            if data_inicio_str:
-                try:
-                    data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d').date()
-                except:
-                    data_inicio = today - timedelta(days=7)
-            else:
-                data_inicio = today - timedelta(days=7)
-            
-            # Filtrar corridas por data
-            corridas = Corridas.objects.filter(
-                data_solicitacao__date__gte=data_inicio,
-                data_solicitacao__date__lte=data_fim
-            ).select_related('veiculo', 'motorista', 'criado_por').order_by('-data_solicitacao')
-        
-        # Filtrar por motorista se especificado
-        if motorista_id:
-            try:
-                corridas = corridas.filter(motorista_id=int(motorista_id))
-            except:
-                pass
-        
-        # Filtrar por status se especificado
-        if status_filter:
-            corridas = corridas.filter(status=status_filter)
+        corridas = corridas.select_related('veiculo', 'motorista', 'criado_por').order_by('-data_solicitacao')
         
         # Criar workbook
         wb = Workbook()
@@ -470,14 +452,13 @@ def relatorios_download(request):
         
         # Gerar nome do arquivo com formato: "relatorio_corridas DD/MM/YYYY - DD/MM/YYYY.xlsx"
         if data_inicio and data_fim:
-            # Garantir que menor data vem primeiro
-            min_data = min(data_inicio, data_fim)
-            max_data = max(data_inicio, data_fim)
-            min_data_str = min_data.strftime('%d/%m/%Y')
-            max_data_str = max_data.strftime('%d/%m/%Y')
-            filename = f"relatorio_corridas {min_data_str} - {max_data_str}.xlsx"
+            filename = f"relatorio_corridas {data_inicio:%d-%m-%Y} - {data_fim:%d-%m-%Y}.xlsx"
+        elif data_inicio:
+            filename = f"relatorio_corridas a partir de {data_inicio:%d-%m-%Y}.xlsx"
+        elif data_fim:
+            filename = f"relatorio_corridas ate {data_fim:%d-%m-%Y}.xlsx"
         else:
-            today_str = today.strftime('%d/%m/%Y')
+            today_str = today.strftime('%d-%m-%Y')
             filename = f"relatorio_corridas {today_str}.xlsx"
         
         # Retornar arquivo com header Content-Disposition manual
@@ -553,6 +534,7 @@ def get_default_status_colors():
         'colors': [
             {'status': 'pendente', 'label': 'Pendente', 'color': '#F8C400'},
             {'status': 'confirmada', 'label': 'Confirmada', 'color': '#34C759'},
+            {'status': 'reconfirmacao_necessaria', 'label': 'Reconfirmação', 'color': '#F8C400'},
             {'status': 'em_andamento', 'label': 'Em Andamento', 'color': '#1D4ED8'},
             {'status': 'concluida', 'label': 'Concluída', 'color': '#007AFF'},
             {'status': 'cancelada', 'label': 'Cancelada', 'color': '#FF3B30'},
@@ -603,11 +585,11 @@ def status_colors(request):
     }
     """
     try:
-        # Apenas admin pode gerenciar cores
         user = request.user
-        if user.nivel_acesso != 1:
+        allowed_roles = [1, 2, 4] if request.method == 'GET' else [1]
+        if getattr(user, 'nivel_acesso', None) not in allowed_roles:
             return Response(
-                {'error': 'Apenas administradores podem acessar'},
+                {'error': 'Você não tem permissão para acessar estas cores'},
                 status=status.HTTP_403_FORBIDDEN
             )
         

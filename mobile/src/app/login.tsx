@@ -8,7 +8,7 @@ import { useAuth } from '../lib/auth';
 import { colors } from '../theme';
 
 export default function LoginScreen() {
-  const { login, logout } = useAuth();
+  const { login, logout, privacyNoticeError } = useAuth();
   const { height } = useWindowDimensions();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -23,14 +23,18 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      const session = await login(username, password);
+      const { session, needsPrivacyConsent } = await login(username, password);
       const role = Number(session.user.nivel_acesso);
-      if (!session.user.is_staff && !session.user.is_superuser && ![1, 2, 4].includes(role) && session.user.nivel_acesso !== 'admin') {
+      const isAdmin = Boolean(session.user.is_staff || session.user.is_superuser || [1, 2, 4].includes(role) || session.user.nivel_acesso === 'admin');
+      if (!isAdmin && role !== 3) {
         await logout();
-        setError('Este acesso é exclusivo para administradores.');
+        setError('Este perfil não tem acesso ao aplicativo.');
         return;
       }
-      router.replace('/(admin)/(tabs)');
+      if (needsPrivacyConsent) router.replace('/privacy-consent');
+      else if (session.user.force_password_change) router.replace('/(admin)/senha');
+      else if (isAdmin) router.replace('/(admin)/(tabs)');
+      else router.replace('/agendamento');
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Não foi possível entrar. Confira seus dados.');
     } finally {
@@ -44,7 +48,7 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={[styles.loginBody, { paddingTop: Math.max(24, height * 0.107) }]} keyboardShouldPersistTaps="handled">
         <View style={styles.loginCard}>
           <Text accessibilityRole="header" style={styles.loginTitle}>Login</Text>
-          {error ? <Notice message={error} /> : null}
+          {error || privacyNoticeError ? <Notice message={error || privacyNoticeError} /> : null}
           <Field label="Login" labelStyle={styles.loginFieldLabel} inputStyle={styles.loginFieldInput} icon={LoginIcon} value={username} onChangeText={setUsername} placeholder="Digite seu login" autoCapitalize="none" returnKeyType="next" />
           <Field label="Senha" labelStyle={styles.loginFieldLabel} inputStyle={styles.loginFieldInput} icon={PasswordIcon} value={password} onChangeText={setPassword} placeholder="Digite sua senha" secureTextEntry returnKeyType="done" onSubmitEditing={submit} />
           <View style={styles.forgotRow}><Link href="/forgot-password" style={styles.forgotLink}>Esqueceu sua senha?</Link></View>

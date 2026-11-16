@@ -9,6 +9,7 @@ from .models import Usuario
 from django.views import View
 from django.urls import reverse
 from django.conf import settings
+from django.db import transaction
 from rest_framework import status, viewsets
 from django.core.mail import send_mail
 from rest_framework.views import APIView
@@ -16,7 +17,7 @@ from datetime import datetime, timedelta
 from django.http import HttpResponseRedirect
 from rest_framework.response import Response
 from .serializers import UserDetailSerializer, ChangePasswordSerializer
-from .models import Veiculo, Usuario, Corridas, Notificacao  # Corrida deve existir no seu models
+from .models import ConsentimentoLGPD, Veiculo, Usuario, Corridas, Notificacao  # Corrida deve existir no seu models
 from django.shortcuts import get_object_or_404
 from rest_framework.authtoken.models import Token  # Import Token model
 from django.views.decorators.csrf import csrf_exempt
@@ -39,6 +40,7 @@ from .corrida_helpers import (
 
 
 logger = logging.getLogger(__name__)
+LGPD_NOTICE_VERSION = '2026-11-v1'
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
@@ -281,15 +283,101 @@ def user_personal_data(request):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def privacy_notice(request):
+    engine = settings.DATABASES['default']['ENGINE']
+    if 'postgresql' in engine:
+        storage = (
+            'Em produção, os dados ficam no PostgreSQL do servidor do sistema, '
+            'configurado por DATABASE_URL ou RENDER_DATABASE_URL. A região física '
+            'do banco deve ser confirmada com a instituição/provedor.'
+        )
+    elif 'mssql' in engine:
+        storage = 'Neste ambiente, os dados ficam no SQL Server configurado pela instituição.'
+    else:
+        storage = 'Neste ambiente de desenvolvimento, os dados ficam em um banco SQLite no servidor local.'
+
+    accepted = ConsentimentoLGPD.objects.filter(
+        usuario=request.user,
+        versao_termo=LGPD_NOTICE_VERSION,
+    ).exists()
+    return Response({
+        'version': LGPD_NOTICE_VERSION,
+        'accepted': accepted,
+        'title': 'Aviso de privacidade do E.L.I.A.S.',
+        'controller': 'Centro Universitário CESMAC. A identificação do encarregado deve ser confirmada com a instituição.',
+        'purposes': [
+            'Autenticar sua conta e controlar seu acesso.',
+            'Organizar corridas institucionais, veículos e motoristas.',
+            'Enviar notificações operacionais relacionadas às corridas.',
+        ],
+        'data_categories': [
+            'Nome, login, e-mail institucional, matrícula e telefone.',
+            'Dados de acesso, corridas, notificações e identificador de notificações do aparelho.',
+            'Localização, somente quando você solicitar o preenchimento do embarque.',
+        ],
+        'storage': storage,
+        'retention': (
+            'A exclusão da conta remove seu cadastro e suas notificações. Registros '
+            'operacionais podem permanecer sem o vínculo com sua conta. Informações '
+            'digitadas nos campos de texto das corridas também podem permanecer. '
+            'A base legal e o prazo de retenção precisam ser confirmados na política institucional.'
+        ),
+        'account_deletion': (
+            'Você pode excluir o cadastro no aplicativo, confirmando sua senha. A exclusão '
+            'do cadastro não remove automaticamente informações textuais de corridas preservadas.'
+        ),
+        'support': 'Para dúvidas ou para exercer seus direitos, contate o responsável institucional pelo sistema (Suporte CTI: (82) 3215-5133).',
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def accept_privacy_notice(request):
+    version = request.data.get('version')
+    if version != LGPD_NOTICE_VERSION:
+        return Response(
+            {'error': 'A versão do aviso mudou. Recarregue o aviso antes de aceitar.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    _, created = ConsentimentoLGPD.objects.get_or_create(
+        usuario=request.user,
+        versao_termo=LGPD_NOTICE_VERSION,
+    )
+    return Response(
+        {'accepted': True, 'version': LGPD_NOTICE_VERSION},
+        status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+    )
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_own_account(request):
+    password = request.data.get('current_password')
+    if not password or not request.user.check_password(password):
+        return Response(
+            {'error': 'Informe sua senha atual para excluir a conta.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    with transaction.atomic():
+        request.user.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 # --- VEÍCULO ---
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def listar_veiculos(request):
     if request.method == 'GET':
         veiculos = Veiculo.objects.all()
         serializer = VeiculoSerializer(veiculos, many=True)
         return Response({'data': serializer.data})
     elif request.method == 'POST':
+        if request.user.nivel_acesso not in [1, 2, 4]:
+            return Response({'detail': 'Apenas a equipe administrativa pode cadastrar veículos.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = VeiculoSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -297,13 +385,23 @@ def listar_veiculos(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # --- VEÍCULO ---
-@api_view(['GET', 'PUT', 'PATCH'])
-@permission_classes([AllowAny])
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def veiculo_detail(request, id):
     veiculo = get_object_or_404(Veiculo, id_veiculo=id)
     if request.method == 'GET':
         serializer = VeiculoSerializer(veiculo)
         return Response(serializer.data)
+    elif request.user.nivel_acesso not in [1, 2, 4]:
+        return Response({'detail': 'Apenas a equipe administrativa pode alterar veículos.'}, status=status.HTTP_403_FORBIDDEN)
+    elif request.method == 'DELETE':
+        if veiculo.corridas.exists():
+            return Response(
+                {'error': 'Este veículo possui corridas vinculadas. Altere o status para indisponível em vez de excluí-lo.'},
+                status=status.HTTP_409_CONFLICT,
+            )
+        veiculo.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
     elif request.method == 'PUT' or request.method == 'PATCH':
         serializer = VeiculoSerializer(veiculo, data=request.data, partial=True)
         if serializer.is_valid():

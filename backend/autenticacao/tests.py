@@ -10,15 +10,18 @@ Tests the 7 core ride management fluxos:
 7. Adiamento de corrida
 """
 
+import io
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta, datetime, time, date
 from unittest.mock import patch
+from openpyxl import load_workbook
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 
-from .models import Usuario, Corridas, Veiculo, Notificacao
+from .models import ConsentimentoLGPD, Usuario, Corridas, Veiculo, Notificacao
+from .relatorio_views import hex_to_argb
 from .corrida_helpers import (
     alterar_rota_antes_iniciar,
     alterar_rota_durante_corrida,
@@ -57,6 +60,177 @@ class TestNotificacaoPushNativo(APITestCase):
         self.assertEqual(payload['to'], 'ExponentPushToken[abc123]')
         self.assertEqual(payload['title'], 'Nova corrida')
         self.assertEqual(payload['body'], 'Uma corrida foi atribuída a você.')
+
+
+class TestConsentimentoEExclusaoDeConta(APITestCase):
+    def setUp(self):
+        self.usuario = Usuario.objects.create_user(
+            login='lgpd-motorista',
+            email='lgpd.motorista@cesmac.edu.br',
+            password='senha-segura-123',
+            nome='Motorista LGPD',
+            nivel_acesso=3,
+        )
+        self.client.force_authenticate(user=self.usuario)
+
+    def test_aviso_exige_autenticacao_e_registra_aceite_da_versao_atual(self):
+        anonymous_client = APIClient()
+        response = anonymous_client.get(reverse('privacy-notice'))
+        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+
+        response = self.client.get(reverse('privacy-notice'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['accepted'])
+        version = response.data['version']
+
+        response = self.client.post(reverse('privacy-consent'), {'version': 'versao-antiga'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(ConsentimentoLGPD.objects.count(), 0)
+
+        response = self.client.post(reverse('privacy-consent'), {'version': version}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(self.client.get(reverse('privacy-notice')).data['accepted'])
+
+        response = self.client.post(reverse('privacy-consent'), {'version': version}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(ConsentimentoLGPD.objects.filter(usuario=self.usuario).count(), 1)
+
+    def test_exclusao_de_conta_confirma_senha_e_desvincula_historico(self):
+        ConsentimentoLGPD.objects.create(usuario=self.usuario, versao_termo='2026-11-v1')
+        corrida = Corridas.objects.create(
+            ponto_inicio='Campus',
+            ponto_chegada='Centro',
+            data_inicio=timezone.localdate(),
+            motorista=self.usuario,
+            criado_por=self.usuario,
+        )
+        notificacao = Notificacao.objects.create(
+            usuario=self.usuario,
+            corrida=corrida,
+            titulo='Corrida atribuída',
+            mensagem='Você recebeu uma nova corrida.',
+        )
+        endpoint = reverse('delete-own-account')
+
+        response = self.client.delete(endpoint, {'current_password': 'senha-incorreta'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(Usuario.objects.filter(pk=self.usuario.pk).exists())
+
+        response = self.client.delete(endpoint, {'current_password': 'senha-segura-123'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Usuario.objects.filter(pk=self.usuario.pk).exists())
+        self.assertFalse(Notificacao.objects.filter(pk=notificacao.pk).exists())
+        self.assertIsNone(Corridas.objects.get(pk=corrida.pk).motorista)
+        self.assertIsNone(Corridas.objects.get(pk=corrida.pk).criado_por)
+        self.assertIsNone(ConsentimentoLGPD.objects.get().usuario)
+
+
+class TestExclusaoDeVeiculo(APITestCase):
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            login='veiculo-admin',
+            email='veiculo.admin@cesmac.edu.br',
+            password='senha-segura-123',
+            nome='Admin Veículos',
+            nivel_acesso=1,
+        )
+        self.motorista = Usuario.objects.create_user(
+            login='veiculo-motorista',
+            email='veiculo.motorista@cesmac.edu.br',
+            password='senha-segura-123',
+            nome='Motorista Veículos',
+            nivel_acesso=3,
+        )
+
+    def test_apenas_administrador_exclui_veiculo_e_corridas_vinculadas_bloqueiam_exclusao(self):
+        veiculo = Veiculo.objects.create(nome='Van de teste', placa='TST-1000')
+        self.client.force_authenticate(user=self.motorista)
+        response = self.client.delete(reverse('veiculo_detail', args=[veiculo.id_veiculo]))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(Veiculo.objects.filter(pk=veiculo.pk).exists())
+
+        corrida = Corridas.objects.create(
+            ponto_inicio='Campus',
+            ponto_chegada='Centro',
+            data_inicio=timezone.localdate(),
+            motorista=self.motorista,
+            criado_por=self.admin,
+            veiculo=veiculo,
+        )
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.delete(reverse('veiculo_detail', args=[veiculo.id_veiculo]))
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertTrue(Veiculo.objects.filter(pk=veiculo.pk).exists())
+
+        corrida.delete()
+        response = self.client.delete(reverse('veiculo_detail', args=[veiculo.id_veiculo]))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Veiculo.objects.filter(pk=veiculo.pk).exists())
+
+
+class TestFluxoDeCorridasDoMotorista(APITestCase):
+    def setUp(self):
+        self.motorista = Usuario.objects.create_user(
+            login='fluxo-motorista',
+            email='fluxo.motorista@cesmac.edu.br',
+            password='senha-segura-123',
+            nome='Motorista do Fluxo',
+            nivel_acesso=3,
+        )
+        self.outro_motorista = Usuario.objects.create_user(
+            login='fluxo-outro-motorista',
+            email='fluxo.outro@cesmac.edu.br',
+            password='senha-segura-123',
+            nome='Outro Motorista',
+            nivel_acesso=3,
+        )
+        self.admin = Usuario.objects.create_user(
+            login='fluxo-admin',
+            email='fluxo.admin@cesmac.edu.br',
+            password='senha-segura-123',
+            nome='Admin do Fluxo',
+            nivel_acesso=1,
+        )
+
+    def test_motorista_consulta_suas_corridas_e_conclui_somente_a_corrida_atribuida(self):
+        corrida = Corridas.objects.create(
+            ponto_inicio='Campus',
+            ponto_chegada='Centro',
+            data_inicio=timezone.localdate(),
+            motorista=self.motorista,
+            criado_por=self.admin,
+        )
+        outra_corrida = Corridas.objects.create(
+            ponto_inicio='Campus',
+            ponto_chegada='Aeroporto',
+            data_inicio=timezone.localdate(),
+            motorista=self.outro_motorista,
+            criado_por=self.admin,
+        )
+        self.client.force_authenticate(user=self.motorista)
+
+        response = self.client.get(reverse('corrida'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual([item['id_corrida'] for item in response.data], [corrida.id_corrida])
+        self.assertNotIn(outra_corrida.id_corrida, [item['id_corrida'] for item in response.data])
+
+        endpoint = reverse('corrida-detail', args=[corrida.id_corrida])
+        response = self.client.patch(endpoint, {'status': 'confirmada'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.patch(endpoint, {'status': 'em_andamento'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.post(reverse('corrida-complete', args=[corrida.id_corrida]), {}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        corrida.refresh_from_db()
+        self.assertEqual(corrida.status, Corridas.StatusChoices.CONCLUIDA)
+
+        response = self.client.patch(
+            reverse('corrida-detail', args=[outra_corrida.id_corrida]),
+            {'status': 'confirmada'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class TestCriarMotoristaNivelAcesso(APITestCase):
@@ -186,6 +360,96 @@ class TestHomeEndpointsPermissoes(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('resumo', response.json())
         self.assertIn('corridas', response.json())
+
+    def test_perfis_de_relatorio_podem_ler_cores_mas_somente_admin_pode_altera_las(self):
+        self.client.force_authenticate(user=self.gerente_user)
+        read_response = self.client.get(reverse('status_colors'))
+        write_response = self.client.post(reverse('status_colors'), {'colors': []}, format='json')
+
+        self.assertEqual(read_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(write_response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestRelatoriosComFiltros(APITestCase):
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            login='relatorio-admin',
+            email='relatorio.admin@cesmac.edu.br',
+            password='123456',
+            nome='Admin Relatório',
+            nivel_acesso=1,
+        )
+        self.motorista = Usuario.objects.create_user(
+            login='relatorio-motorista',
+            email='relatorio.motorista@cesmac.edu.br',
+            password='123456',
+            nome='Motorista Relatório',
+            nivel_acesso=3,
+        )
+        self.veiculo = Veiculo.objects.create(nome='Van Azul', placa='REL-1000')
+        self.client.force_authenticate(user=self.admin)
+
+    def criar_corrida(self, ponto_inicio, status_corrida):
+        return Corridas.objects.create(
+            ponto_inicio=ponto_inicio,
+            ponto_chegada='Centro',
+            data_inicio=timezone.localdate(),
+            solicitante='Equipe de teste',
+            motorista=self.motorista,
+            veiculo=self.veiculo,
+            status=status_corrida,
+        )
+
+    def definir_data_solicitacao(self, corrida, dia):
+        data_hora = timezone.make_aware(datetime.combine(dia, time(12, 0)))
+        Corridas.objects.filter(pk=corrida.pk).update(data_solicitacao=data_hora)
+
+    def test_filtros_de_busca_e_status_sao_iguais_no_json_e_no_excel_colorido(self):
+        corrida_incluida = self.criar_corrida('Campus Norte', Corridas.StatusChoices.CONCLUIDA)
+        self.criar_corrida('Campus Sul', Corridas.StatusChoices.PENDENTE)
+        params = {'status': 'concluida', 'q': 'Van Azul'}
+
+        response = self.client.get(reverse('relatorios'), params)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['resumo']['total_corridas'], 1)
+        self.assertEqual(response.data['corridas'][0]['id_corrida'], corrida_incluida.id_corrida)
+
+        with patch(
+            'autenticacao.relatorio_views.load_status_colors',
+            return_value={'colors': [{'status': 'concluida', 'color': '#007AFF'}]},
+        ):
+            export = self.client.get(reverse('relatorios_download'), params)
+
+        self.assertEqual(export.status_code, status.HTTP_200_OK)
+        workbook = load_workbook(io.BytesIO(b''.join(export.streaming_content)))
+        sheet = workbook['Relatório de Corridas']
+        self.assertEqual(sheet.max_row, 2)
+        self.assertEqual(sheet['B2'].value, 'concluida')
+        self.assertEqual(sheet['B2'].fill.fgColor.rgb, hex_to_argb('#007AFF', transparency=0.3))
+
+    def test_data_inicial_e_final_isoladas_filtram_sem_intervalo_padrao_implicito(self):
+        hoje = timezone.localdate()
+        data_antiga = hoje - timedelta(days=10)
+        data_recente = hoje - timedelta(days=2)
+        corrida_antiga = self.criar_corrida('Campus Norte', Corridas.StatusChoices.PENDENTE)
+        corrida_recente = self.criar_corrida('Campus Sul', Corridas.StatusChoices.CONCLUIDA)
+        self.definir_data_solicitacao(corrida_antiga, data_antiga)
+        self.definir_data_solicitacao(corrida_recente, data_recente)
+
+        desde_recente = self.client.get(reverse('relatorios'), {'data_inicio': data_recente.isoformat()})
+        ate_antiga = self.client.get(reverse('relatorios'), {'data_fim': data_antiga.isoformat()})
+
+        self.assertEqual([item['id_corrida'] for item in desde_recente.data['corridas']], [corrida_recente.id_corrida])
+        self.assertEqual([item['id_corrida'] for item in ate_antiga.data['corridas']], [corrida_antiga.id_corrida])
+
+    def test_rejeita_datas_invalidas_e_intervalos_invertidos(self):
+        endpoint = reverse('relatorios')
+        invalid_date = self.client.get(endpoint, {'data_inicio': '2026-02-30'})
+        reversed_range = self.client.get(endpoint, {'data_inicio': '2026-11-17', 'data_fim': '2026-11-16'})
+
+        self.assertEqual(invalid_date.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(reversed_range.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class TestListarMotoristas(APITestCase):

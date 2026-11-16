@@ -26,7 +26,7 @@ export async function getDevicePushToken(): Promise<string | null> {
       return null;
     }
 
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.manifest2?.extra?.projectId;
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
     if (!projectId) {
       return null;
     }

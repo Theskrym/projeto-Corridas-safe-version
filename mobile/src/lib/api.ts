@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 
 const API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://projeto-e-l-i-a-s.onrender.com/api/auth').replace(/\/+$/, '');
@@ -35,11 +36,25 @@ export interface SessionUser {
   nivel_acesso?: string | number;
   is_staff?: boolean;
   is_superuser?: boolean;
+  force_password_change?: boolean;
 }
 
 export interface Session {
   token: string;
   user: SessionUser;
+}
+
+export interface PrivacyNotice {
+  version: string;
+  accepted: boolean;
+  title: string;
+  controller: string;
+  purposes: string[];
+  data_categories: string[];
+  storage: string;
+  retention: string;
+  account_deletion: string;
+  support: string;
 }
 
 export class ApiError extends Error {
@@ -50,6 +65,37 @@ export class ApiError extends Error {
     this.name = 'ApiError';
     this.status = status;
   }
+}
+
+export type AuthenticatedDownload =
+  | { platform: 'web'; blob: Blob }
+  | { platform: 'native'; uri: string };
+
+export async function downloadAuthenticatedFile(path: string, filename: string): Promise<AuthenticatedDownload> {
+  const token = await getStoredItem(TOKEN_KEY);
+  const url = `${API_BASE_URL}${path}`;
+  const headers = {
+    Accept: 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  if (Platform.OS === 'web') {
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new ApiError(body.error || body.detail || body.message || 'Não foi possível gerar o arquivo Excel.', response.status);
+    }
+    return { platform: 'web', blob: await response.blob() };
+  }
+
+  const directory = FileSystem.cacheDirectory;
+  if (!directory) throw new ApiError('O armazenamento temporário não está disponível neste dispositivo.');
+  const result = await FileSystem.downloadAsync(url, `${directory}${filename}`, { headers });
+  if (result.status < 200 || result.status >= 300) {
+    await FileSystem.deleteAsync(result.uri, { idempotent: true });
+    throw new ApiError(`Não foi possível gerar o arquivo Excel (HTTP ${result.status}).`, result.status);
+  }
+  return { platform: 'native', uri: result.uri };
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -129,6 +175,7 @@ export const api = {
   post: <T,>(path: string, body: unknown) => request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
   put: <T,>(path: string, body: unknown) => request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
   patch: <T,>(path: string, body: unknown) => request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
+  delete: <T,>(path: string, body: unknown) => request<T>(path, { method: 'DELETE', body: JSON.stringify(body) }),
 };
 
 export function unwrapList<T>(value: any): T[] {

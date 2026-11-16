@@ -47,7 +47,7 @@ const HomePage = () => {
         });
         setStats(response.data);
         setError(null);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Erro ao carregar estatísticas:', err);
         setError('Erro ao carregar estatísticas');
       } finally {
@@ -65,47 +65,48 @@ const HomePage = () => {
       <div className="home-content-wrapper">
         <SideBarMenu />
         
-        <main className="conteudo" key={location.pathname}>
+        <main className="conteudo" key={location.pathname} aria-busy={loading}>
           <div className="dashboard-container">
             <div className="dashboard-header">
               
             </div>
             
-            <div className="dashboard-cards">
+            {loading && <p role="status" aria-live="polite">Carregando indicadores…</p>}
+            <section className="dashboard-cards" aria-label="Indicadores do sistema">
               <div className="metric-card">
-                <div className="metric-value">{loading ? '...' : stats?.corridas.hoje || 0}</div>
+                <div className="metric-value">{loading ? '—' : stats?.corridas.hoje ?? 0}</div>
                 <div className="metric-label">Corridas de Hoje</div>
                 <div className="metric-divider"></div>
               </div>
 
               <div className="metric-card">
-                <div className="metric-value">{loading ? '...' : stats?.corridas.em_andamento || 0}</div>
+                <div className="metric-value">{loading ? '—' : stats?.corridas.em_andamento ?? 0}</div>
                 <div className="metric-label">Em Andamento</div>
                 <div className="metric-divider"></div>
               </div>
 
               <div className="metric-card">
-                <div className="metric-value">{loading ? '...' : stats?.motoristas.ativos || 0}</div>
+                <div className="metric-value">{loading ? '—' : stats?.motoristas.ativos ?? 0}</div>
                 <div className="metric-label">Motoristas Ativos</div>
                 <div className="metric-divider"></div>
               </div>
 
               <div className="metric-card">
-                <div className="metric-value">{loading ? '...' : stats?.veiculos.disponiveis || 0}</div>
+                <div className="metric-value">{loading ? '—' : stats?.veiculos.disponiveis ?? 0}</div>
                 <div className="metric-label">Veículos Disponíveis</div>
                 <div className="metric-divider"></div>
               </div>
-            </div>
+            </section>
             
             <div className="report-section">
-              <div className="status" onClick={() => navigate("/gerar-relatorio")} style={{ cursor: 'pointer' }}>
+              <button type="button" className="status" onClick={() => navigate("/gerar-relatorio")}>
                 <div className="text-wrapper-4">Gerar Relatório</div>
-              </div>
+              </button>
             </div>
 
             {error && (
-              <div style={{ color: '#d32f2f', marginTop: '16px' }}>
-                {error}
+              <div role="alert" style={{ color: '#7f1d1d', marginTop: '16px' }}>
+                {error}. Atualize a página para tentar novamente.
               </div>
             )}
           </div>

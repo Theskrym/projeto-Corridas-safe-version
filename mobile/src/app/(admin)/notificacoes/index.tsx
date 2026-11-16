@@ -5,11 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { EmptyState, LoadingState, Notice, TopBar, ui } from '../../../components/ui';
 import { AppText as Text } from '../../../components/AppText';
 import { api, unwrapList } from '../../../lib/api';
+import { useAuth } from '../../../lib/auth';
 import { colors } from '../../../theme';
 
 type NotificationItem = { id_notificacao: number; titulo: string; mensagem: string; data_criacao: string; lida: boolean; tipo?: string };
 
 export default function NotificationsScreen() {
+  const { isAdmin } = useAuth();
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [filter, setFilter] = useState<'todas' | 'nao-lidas' | 'lidas'>('todas');
   const [loading, setLoading] = useState(true);
@@ -33,7 +35,7 @@ export default function NotificationsScreen() {
 
   const filtered = useMemo(() => items.filter(item => filter === 'todas' || (filter === 'lidas' ? item.lida : !item.lida)), [items, filter]);
 
-  return <View style={{ flex: 1, backgroundColor: colors.canvas }}><TopBar title="Notificações" back /><FlatList
+  return <View style={{ flex: 1, backgroundColor: colors.canvas }}><TopBar title="Notificações" back showSettings={isAdmin} /><FlatList
     data={filtered}
     keyExtractor={item => String(item.id_notificacao)}
     contentContainerStyle={{ flexGrow: 1, padding: 16, gap: 10 }}

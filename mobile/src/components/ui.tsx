@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type TextStyle, type ViewProps, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, TextInput, useWindowDimensions, View, type StyleProp, type TextInputProps, type TextStyle, type ViewProps, type ViewStyle } from 'react-native';
 import type { ReactNode } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -16,21 +16,27 @@ export function Page({ children, scroll = true, ...props }: ViewProps & { childr
 }
 
 export function BrandHeader({ title }: { title: string }) {
+  const { width } = useWindowDimensions();
+  const logoWidth = Math.min(196.5, Math.max(0, width - 132));
   return (
     <View style={styles.header}>
-      <View style={styles.logoRow}><View style={styles.headerSpacer} /><CesmacLogo width={196.5} height={40.5} /><View style={styles.headerSpacer} /></View>
+      <View style={styles.logoRow}><View style={styles.headerSpacer} /><CesmacLogo width={logoWidth} height={logoWidth * 40.5 / 196.5} /><View style={styles.headerSpacer} /></View>
       <View style={styles.titleBand}><Text style={styles.titleBandText}>{title}</Text></View>
     </View>
   );
 }
 
-export function TopBar({ title, back = false, action, onAction }: { title: string; back?: boolean; action?: string; onAction?: () => void }) {
+export function TopBar({ title, back = false, action, onAction, showSettings = true }: { title: string; back?: boolean; action?: string; onAction?: () => void; showSettings?: boolean }) {
+  const { width } = useWindowDimensions();
+  const logoWidth = Math.min(196.5, Math.max(0, width - 132));
   return (
     <View style={styles.header}>
       <View style={styles.logoRow}>
         {back ? <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={() => router.back()} hitSlop={8} style={styles.iconButton}><Ionicons name="arrow-back" size={22} color={colors.brand} /></Pressable> : <View style={styles.iconButton} />}
-        <CesmacLogo width={196.5} height={40.5} />
-        {action ? <Pressable accessibilityRole="button" onPress={onAction} style={styles.topAction}><Text style={styles.topActionText}>{action}</Text></Pressable> : <Pressable accessibilityRole="button" accessibilityLabel="Mais opções" onPress={() => router.push('/(admin)/(tabs)/mais')} style={styles.iconButton}><Ionicons name="settings-outline" size={24} color={colors.brand} /></Pressable>}
+        <View style={styles.logoSlot}>
+          <CesmacLogo width={logoWidth} height={logoWidth * 40.5 / 196.5} />
+        </View>
+        {action ? <Pressable accessibilityRole="button" onPress={onAction} style={styles.topAction}><Text style={styles.topActionText}>{action}</Text></Pressable> : showSettings ? <Pressable accessibilityRole="button" accessibilityLabel="Mais opções" onPress={() => router.push('/(admin)/(tabs)/mais')} style={styles.iconButton}><Ionicons name="settings-outline" size={24} color={colors.brand} /></Pressable> : <View style={styles.iconButton} />}
       </View>
       <View style={styles.titleBand}><Text style={styles.titleBandText}>{title}</Text></View>
     </View>
@@ -82,20 +88,34 @@ export function EmptyState({ title, detail }: { title: string; detail?: string }
 export function StatusBadge({ status }: { status?: string }) {
   const normalized = (status || 'indefinido').toLowerCase();
   const palette: Record<string, { backgroundColor: string; color: string }> = {
-    concluida: { backgroundColor: '#34C759', color: '#FFFFFF' },
+    concluida: { backgroundColor: '#007AFF', color: '#FFFFFF' },
     disponivel: { backgroundColor: '#34C759', color: '#FFFFFF' },
     ativo: { backgroundColor: '#34C759', color: '#FFFFFF' },
     cancelada: { backgroundColor: '#FF3B30', color: '#FFFFFF' },
     recusada: { backgroundColor: '#FF3B30', color: '#FFFFFF' },
     indisponivel: { backgroundColor: '#FF3B30', color: '#FFFFFF' },
     inativo: { backgroundColor: '#FF3B30', color: '#FFFFFF' },
-    confirmada: { backgroundColor: '#2196F3', color: '#FFFFFF' },
-    pendente: { backgroundColor: '#FFC107', color: '#000000' },
+    confirmada: { backgroundColor: '#34C759', color: '#FFFFFF' },
+    pendente: { backgroundColor: '#F8C400', color: '#000000' },
     em_andamento: { backgroundColor: '#1D4ED8', color: '#FFFFFF' },
-    reconfirmacao_necessaria: { backgroundColor: '#FF9800', color: '#FFFFFF' },
+    reconfirmacao_necessaria: { backgroundColor: '#F8C400', color: '#000000' },
     manutencao: { backgroundColor: '#FF9800', color: '#FFFFFF' },
   };
-  const label = normalized.replaceAll('_', ' ');
+  const labels: Record<string, string> = {
+    concluida: 'Concluída',
+    disponivel: 'Disponível',
+    ativo: 'Ativo',
+    cancelada: 'Cancelada',
+    recusada: 'Recusada',
+    indisponivel: 'Indisponível',
+    inativo: 'Inativo',
+    confirmada: 'Confirmada',
+    pendente: 'Pendente',
+    em_andamento: 'Em Andamento',
+    reconfirmacao_necessaria: 'Reconfirmação Necessária',
+    manutencao: 'Em Manutenção',
+  };
+  const label = labels[normalized] || status || '—';
   const statusColors = palette[normalized] || { backgroundColor: '#999999', color: '#FFFFFF' };
   return <View style={[styles.badge, { backgroundColor: statusColors.backgroundColor }]}><Text style={[styles.badgeText, { color: statusColors.color }]}>{label}</Text></View>;
 }
@@ -116,6 +136,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   header: { width: '100%', flexShrink: 0, backgroundColor: colors.paper },
   logoRow: { width: '100%', height: 48, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  logoSlot: { flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'center' },
   headerSpacer: { width: 44, height: 44 },
   iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   titleBand: { minHeight: 26, paddingHorizontal: 10, paddingVertical: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.brandLight },

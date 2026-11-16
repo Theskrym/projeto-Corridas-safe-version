@@ -1,9 +1,10 @@
-import { FormFieldConfig } from '../../config/formConfigs';
+import { useId } from 'react';
+import type { FormFieldConfig } from '../../config/formConfigs';
 
 interface FormFieldProps {
   field: FormFieldConfig;
-  value: any;
-  onChange: (value: any) => void;
+  value: string | number | null | undefined;
+  onChange: (value: string | number) => void;
   error?: string | null;
   selectOptions?: Array<{ value: string | number; label: string }>;
   isDisabled?: boolean;
@@ -18,16 +19,25 @@ export const FormField = ({
   isDisabled
 }: FormFieldProps) => {
   const isFieldDisabled = isDisabled || (field.disabled?.(isDisabled ?? false) ?? false);
+  const generatedId = useId();
+  const fieldId = `field-${field.name}-${generatedId}`;
+  const errorId = `${fieldId}-error`;
+  const commonAttributes = {
+    id: fieldId,
+    required: field.required,
+    'aria-invalid': Boolean(error),
+    'aria-describedby': error ? errorId : undefined
+  };
 
   return (
     <div style={{ marginBottom: '15px' }}>
-      <div className="secondary-field-label" style={{ marginBottom: '5px' }}>
-        {field.label}
-        {field.required && <span style={{ color: 'red' }}>*</span>}
-      </div>
+      <label className="secondary-field-label" htmlFor={fieldId} style={{ marginBottom: '5px', display: 'block' }}>
+        {field.label}{field.required && <> <span aria-hidden="true">*</span><span className="visually-hidden"> (obrigatório)</span></>}
+      </label>
 
       {field.type === 'textarea' ? (
         <textarea
+          {...commonAttributes}
           className="secondary-textfield"
           placeholder={field.placeholder}
           value={value || ''}
@@ -35,18 +45,19 @@ export const FormField = ({
           disabled={isFieldDisabled}
           rows={3}
           style={{
-            borderColor: error ? 'red' : undefined,
+            borderColor: error ? '#b42318' : undefined,
             backgroundColor: isFieldDisabled ? '#f0f0f0' : undefined
           }}
         />
       ) : field.type === 'select' ? (
         <select
+          {...commonAttributes}
           className="secondary-textfield"
           value={value || ''}
           onChange={(e) => onChange(e.target.value ? (field.name === 'motorista' || field.name === 'veiculo' ? Number(e.target.value) : e.target.value) : "")}
           disabled={isFieldDisabled}
           style={{
-            borderColor: error ? 'red' : undefined,
+            borderColor: error ? '#b42318' : undefined,
             backgroundColor: isFieldDisabled ? '#f0f0f0' : undefined
           }}
         >
@@ -59,8 +70,10 @@ export const FormField = ({
         </select>
       ) : field.type === 'phone' ? (
         <input
+          {...commonAttributes}
           className="secondary-textfield"
-          type="text"
+          type="tel"
+          inputMode="tel"
           placeholder={field.placeholder}
           value={value || ''}
           onChange={(e) => {
@@ -80,12 +93,13 @@ export const FormField = ({
           disabled={isFieldDisabled}
           maxLength={15}
           style={{
-            borderColor: error ? 'red' : undefined,
+            borderColor: error ? '#b42318' : undefined,
             backgroundColor: isFieldDisabled ? '#f0f0f0' : undefined
           }}
         />
       ) : field.type === 'number' && field.name === 'matricula' ? (
         <input
+          {...commonAttributes}
           className="secondary-textfield"
           type="text"
           inputMode="numeric"
@@ -105,12 +119,13 @@ export const FormField = ({
           disabled={isFieldDisabled}
           maxLength={6}
           style={{
-            borderColor: error ? 'red' : undefined,
+            borderColor: error ? '#b42318' : undefined,
             backgroundColor: isFieldDisabled ? '#f0f0f0' : undefined
           }}
         />
       ) : (
         <input
+          {...commonAttributes}
           className="secondary-textfield"
           type={field.type}
           placeholder={field.placeholder}
@@ -118,14 +133,14 @@ export const FormField = ({
           onChange={(e) => onChange(e.target.value)}
           disabled={isFieldDisabled}
           style={{
-            borderColor: error ? 'red' : undefined,
+            borderColor: error ? '#b42318' : undefined,
             backgroundColor: isFieldDisabled ? '#f0f0f0' : undefined
           }}
         />
       )}
 
       {error && (
-        <div style={{ color: 'red', fontSize: '12px', marginTop: '3px' }}>
+        <div id={errorId} role="alert" style={{ color: '#b42318', fontSize: '14px', marginTop: '4px' }}>
           {error}
         </div>
       )}

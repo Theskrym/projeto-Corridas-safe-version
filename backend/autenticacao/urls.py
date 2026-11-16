@@ -4,7 +4,8 @@ from django.urls import path, include as url_include
 from rest_framework.routers import DefaultRouter
 from .views import (
     LoginView, ForgotPasswordView, AutoLoginView, ChangePasswordView, 
-    user_personal_data, listar_veiculos, veiculo_detail, veiculo_conflitos, listar_motoristas, marcar_multiplas,
+    user_personal_data, privacy_notice, accept_privacy_notice, delete_own_account,
+    listar_veiculos, veiculo_detail, veiculo_conflitos, listar_motoristas, marcar_multiplas,
     motorista_detail, criar_motorista, LoginV2View, LoginTestView, RefreshTokenView, CorridaViewSet, NotificacaoViewSet
 )
 from .relatorio_views import relatorios, home_stats, relatorios_download, notificacoes_contagem, status_colors
@@ -38,6 +39,9 @@ urlpatterns = [
     
     # Outras rotas
     path('user_personal_data/', user_personal_data, name='user_personal_data'),
+    path('privacy-notice/', privacy_notice, name='privacy-notice'),
+    path('privacy-consent/', accept_privacy_notice, name='privacy-consent'),
+    path('account/delete/', delete_own_account, name='delete-own-account'),
     path('veiculos/', listar_veiculos, name='listar_veiculos'),
     path('veiculos/<int:id>/', veiculo_detail, name='veiculo_detail'),
     path('veiculos/<int:id>/conflitos/', veiculo_conflitos, name='veiculo_conflitos'),

@@ -1,6 +1,6 @@
-# E.L.I.A.S Admin Mobile
+# E.L.I.A.S Mobile
 
-Aplicativo administrativo nativo em React Native com Expo Router. O frontend web em `../frontend` e o backend Django continuam separados; o app mobile consome a mesma API em `/api/auth/`.
+Aplicativo nativo em React Native com Expo Router, com áreas administrativas e fluxo de corridas para motoristas. O frontend web em `../frontend` e o backend Django continuam separados; o app mobile consome a mesma API em `/api/auth/`.
 
 ## Executar
 
@@ -10,13 +10,15 @@ npm run typecheck
 npm run start
 ```
 
-Para apontar o app para um backend local, crie um `.env` neste diretório e defina `EXPO_PUBLIC_API_URL`. Em um telefone físico, use o IP da máquina na rede local, não `localhost`:
+Para usar o backend local no Expo Web (neste computador), defina `EXPO_PUBLIC_API_URL` no `.env` deste diretório:
 
 ```text
-EXPO_PUBLIC_API_URL=http://192.168.0.10:8003/api/auth
+EXPO_PUBLIC_API_URL=http://127.0.0.1:8003/api/auth
 ```
 
-Sem essa variável, o app usa o backend hospedado `https://projeto-e-l-i-a-s.onrender.com/api/auth`.
+Em um telefone físico, use o IP da máquina na rede local no lugar de `127.0.0.1` e inicie o Django com `python manage.py runserver 0.0.0.0:8003`. Reinicie o Expo depois de alterar o `.env`, para carregar a variável.
+
+Sem essa variável, o app usa o backend hospedado `https://projeto-e-l-i-a-s.onrender.com/api/auth`. O `.env` local não deve ser enviado ao repositório.
 
 ## Telas administrativas
 
@@ -26,14 +28,25 @@ Sem essa variável, o app usa o backend hospedado `https://projeto-e-l-i-a-s.onr
 - Lista, cadastro e edição de motoristas
 - Lista, cadastro e edição de veículos
 - Notificações, filtros e detalhe
-- Relatórios por período
-- Dados pessoais, troca de senha e cores de status
+- Relatórios com filtros por período em DD/MM/AAAA, tabela de seis colunas como no Vite, ordenação e exportação Excel
+- Datas e horários de corridas usam máscara automática (DD/MM/AAAA e HH:MM); os valores enviados à API continuam em ISO e HH:MM
+- Seletor de cor por status com roda, tonalidade, paleta rápida e código HEX para o Excel
+- Dados pessoais e troca de senha
+
+## Fluxo do motorista
+
+- Corridas atribuídas, aceite/recusa, início e conclusão
+- Histórico, notificações, dados pessoais e troca de senha
+- Exclusão da própria conta após confirmar a senha
 
 As listas de corridas, motoristas, veículos, notificações e relatório usam `FlatList`. A navegação combina tabs e stack. A sessão fica em `expo-secure-store`.
+No primeiro acesso, o aplicativo apresenta o aviso de privacidade e registra a versão aceita no backend. A exclusão da conta remove o cadastro e notificações; registros e textos de corridas podem permanecer sem vínculo com a conta.
+
+Antes de liberar o aplicativo, aplique as migrações no ambiente de backend (`python manage.py migrate`) e confirme com a instituição a região de armazenamento e a política de retenção mencionadas no aviso. A região e o prazo de retenção não estão definidos neste repositório, portanto o aviso não substitui a validação jurídica/institucional.
 
 Links de autenticação podem abrir `eliasadmin://auto-login?token=...&force_change=true`.
 
-O formulário de corrida pode usar GPS para preencher o ponto de embarque e abrir a câmera para uma foto local. O backend atual não tem campo/endpoints para anexar a foto; por isso, ela não é sincronizada com o servidor.
+O formulário de corrida pode usar GPS para preencher o ponto de embarque e abrir a câmera para uma foto local. O backend atual não tem campo/endpoints para anexar a foto; por isso, ela não é sincronizada com o servidor. Veículos com corridas vinculadas não podem ser excluídos; podem ser marcados como indisponíveis.
 
 ## EAS Update
 

@@ -103,6 +103,23 @@ class Usuario(AbstractBaseUser):
         return token
 
 
+class ConsentimentoLGPD(models.Model):
+    usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='consentimentos_lgpd',
+    )
+    versao_termo = models.CharField(max_length=32)
+    aceito_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'ELIAS_ConsentimentosLGPD'
+        verbose_name = 'Consentimento LGPD'
+        verbose_name_plural = 'Consentimentos LGPD'
+
+
 class AuthRouter:
     route_app_labels = {'auth', 'contenttypes', 'sessions', 'admin'}
 

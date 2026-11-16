@@ -11,8 +11,13 @@
       "color": "#34C759"
     },
     {
+      "status": "reconfirmacao_necessaria",
+      "label": "Reconfirmação",
+      "color": "#F8C400"
+    },
+    {
       "status": "em_andamento",
-      "label": "Em Andamento",
+      "label": "Em andamento",
       "color": "#1D4ED8"
     },
     {

@@ -699,7 +699,7 @@ body {
   font-family: 'DM Sans', sans-serif;
   font-weight: 500;
   font-size: 14px;
-  color: #045CA4;
+  color: #034578;
   margin-bottom: 0.4rem;
 }
 
@@ -708,8 +708,9 @@ body {
 /* Campo de texto padrão */
 .secondary-textfield {
   background-color: #fff;
-  border: 2px solid #ccc;
+  border: 2px solid #6b7280;
   border-radius: 8px;
+  min-height: 44px;
   padding: 0.75rem;
   font-size: 14px;
   font-family: 'DM Sans', sans-serif;
@@ -719,8 +720,23 @@ body {
 }
 
 .secondary-textfield:focus {
-  outline: none;
-  border-color: #0072C6;
+  border-color: #045ca4;
+}
+
+.secondary-textfield[aria-invalid="true"] {
+  border-color: #b42318;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Campo de texto longo (textarea) */
