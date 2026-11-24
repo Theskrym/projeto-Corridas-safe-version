@@ -34,7 +34,7 @@ export default function DashboardScreen() {
 const styles = {
   dashboard: { width: '100%' as const, maxWidth: 1200, alignSelf: 'center' as const, paddingHorizontal: 16, paddingTop: 8 },
   metricsGrid: { gap: 16 },
-  metricCard: { minHeight: 120, padding: 16, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: colors.paper, borderRadius: 12, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2, gap: 6 },
+  metricCard: { minHeight: 140, padding: 24, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: colors.paper, borderRadius: 12, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 2, gap: 8 },
   metricValue: { color: colors.brand, fontSize: 35, fontWeight: '700' as const },
   metricLabel: { color: '#333333', fontSize: 16, fontWeight: '500' as const, textAlign: 'center' as const },
   metricDivider: { width: '50%' as const, height: 2, marginTop: 6, backgroundColor: colors.brandLight },

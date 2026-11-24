@@ -66,10 +66,10 @@ export default function LoginScreen() {
 
 const styles = {
   loginBody: { flexGrow: 1, paddingHorizontal: 20, justifyContent: 'flex-start' as const, backgroundColor: colors.paper },
-  loginCard: { width: '100%' as const, maxWidth: 300, alignSelf: 'center' as const, marginTop: 32, marginBottom: 28, padding: 20, gap: 16, borderRadius: 8, backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 6, elevation: 2 },
-  loginTitle: { color: colors.brand, fontSize: 19, fontWeight: '700' as const, marginBottom: 2 },
-  loginFieldLabel: { fontSize: 12 },
-  loginFieldInput: { fontSize: 12 },
+  loginCard: { width: '90%' as const, maxWidth: 500, alignSelf: 'center' as const, marginTop: 32, marginBottom: 28, padding: 24, gap: 16, borderRadius: 8, backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 2 },
+  loginTitle: { color: colors.brand, fontSize: 24, fontWeight: '700' as const, marginBottom: 2 },
+  loginFieldLabel: { fontSize: 16 },
+  loginFieldInput: { fontSize: 16 },
   forgotRow: { alignItems: 'flex-end' as const, minHeight: 30, justifyContent: 'center' as const },
   forgotLink: { color: colors.brand, fontSize: 13, fontWeight: '700' as const },
   loginFooter: { marginTop: 'auto' as const, paddingTop: 24, paddingBottom: 22, textAlign: 'center' as const, color: colors.brand, fontSize: 12, lineHeight: 19 },

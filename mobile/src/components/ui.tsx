@@ -88,17 +88,17 @@ export function EmptyState({ title, detail }: { title: string; detail?: string }
 export function StatusBadge({ status }: { status?: string }) {
   const normalized = (status || 'indefinido').toLowerCase();
   const palette: Record<string, { backgroundColor: string; color: string }> = {
-    concluida: { backgroundColor: '#007AFF', color: '#FFFFFF' },
+    concluida: { backgroundColor: '#34C759', color: '#FFFFFF' },
     disponivel: { backgroundColor: '#34C759', color: '#FFFFFF' },
     ativo: { backgroundColor: '#34C759', color: '#FFFFFF' },
     cancelada: { backgroundColor: '#FF3B30', color: '#FFFFFF' },
     recusada: { backgroundColor: '#FF3B30', color: '#FFFFFF' },
     indisponivel: { backgroundColor: '#FF3B30', color: '#FFFFFF' },
     inativo: { backgroundColor: '#FF3B30', color: '#FFFFFF' },
-    confirmada: { backgroundColor: '#34C759', color: '#FFFFFF' },
+    confirmada: { backgroundColor: '#2196F3', color: '#FFFFFF' },
     pendente: { backgroundColor: '#F8C400', color: '#000000' },
     em_andamento: { backgroundColor: '#1D4ED8', color: '#FFFFFF' },
-    reconfirmacao_necessaria: { backgroundColor: '#F8C400', color: '#000000' },
+    reconfirmacao_necessaria: { backgroundColor: '#FF9800', color: '#FFFFFF' },
     manutencao: { backgroundColor: '#FF9800', color: '#FFFFFF' },
   };
   const labels: Record<string, string> = {
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   headerSpacer: { width: 44, height: 44 },
   iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   titleBand: { minHeight: 26, paddingHorizontal: 10, paddingVertical: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.brandLight },
-  titleBandText: { color: colors.paper, fontWeight: '700', fontSize: 15.7, lineHeight: 18, textAlign: 'center' },
+  titleBandText: { color: colors.paper, fontWeight: '700', fontSize: 16, lineHeight: 18, textAlign: 'center' },
   topAction: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   topActionText: { color: colors.brand, fontWeight: '700' },
   topTrailing: { width: 12 },
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   eyebrow: { color: colors.brand, fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
   headingTitle: { color: colors.ink, fontSize: 27, fontWeight: '800' },
   subtitle: { color: colors.muted, fontSize: 14, lineHeight: 20 },
-  action: { minHeight: 46, borderRadius: 4, paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
+  action: { minHeight: 46, borderRadius: 6, paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
   actionText: { fontSize: 15, fontWeight: '700' },
   field: { gap: 6 },
   label: { color: colors.ink, fontSize: 14, fontWeight: '700' },

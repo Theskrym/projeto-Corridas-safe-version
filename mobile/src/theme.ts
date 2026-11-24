@@ -1,10 +1,10 @@
 export const colors = {
   ink: '#045CA4',
   body: '#333333',
-  muted: '#4A4A4A',
+  muted: '#4B5563',
   canvas: '#F3F5F7',
   paper: '#FFFFFF',
-  card: '#FFFFFF',
+  card: 'whitesmoke',
   line: '#E0E0E0',
   brand: '#045CA4',
   brandLight: '#0072C6',
